@@ -1,0 +1,61 @@
+version: '3'
+services:
+  backend-pg:
+    image: postgres:14.4
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: *удалено*
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    volumes:
+      - ./back/pg/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./back/pg:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: always
+    # command: ["postgres", "-c", "log_statement=all"]
+    command: postgres -c 'max_connections=300'
+    logging: 
+      driver: none
+
+  backend-api:
+    build: ./back/API
+    # depends_on:
+    #   - backend-pg
+    env_file:
+      - .env
+    ports:
+      - "5000:5000"
+    expose:
+      - 5000
+    restart: unless-stopped
+    
+  backend-auth:
+    build: ./back/Auth
+    # depends_on:
+    #   - backend-pg
+    env_file:
+      - .env
+    ports:
+      - "4800:4800"
+    expose:
+      - 4800
+    restart: unless-stopped
+
+  backend-uploader:
+    build: ./back/Uploader
+    # depends_on:
+    #   - backend-pg
+    env_file:
+      - .env
+    ports:
+      - "25565:25565"
+    expose:
+      - 25565
+    restart: unless-stopped
+  
+  # frontend-ng:
+  #   build: ./front
+  #   ports:
+  #     - "80:80"
+  #   expose:
+  #     - 80
